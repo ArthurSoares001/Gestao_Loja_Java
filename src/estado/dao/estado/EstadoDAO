@@ -1,0 +1,150 @@
+package estado.dao;
+
+import estado.model.Estado;
+import estado.model.Pais;
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class EstadoDAO {
+
+    private static final String URL = "jdbc:postgresql://localhost:5432/seu_banco";
+    private static final String USER = "postgres";
+    private static final String PASSWORD = "sua_senha";
+
+    private Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(URL, USER, PASSWORD);
+    }
+
+    public void incluir(Estado estado) throws Exception {
+        estado.validar();
+        String sql = "INSERT INTO estado (nome, ativo, sigla, id_pais) VALUES (?, ?, ?, ?)";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setString(1, estado.getNome());
+            ps.setBoolean(2, estado.isAtivo());
+            ps.setString(3, estado.getSigla());
+            ps.setInt(4, estado.getPais().getId());
+            ps.executeUpdate();
+
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    estado.setId(rs.getInt(1));
+                }
+            }
+        }
+    }
+
+    public void alterar(Estado estado) throws Exception {
+        estado.validar();
+        String sql = "UPDATE estado SET nome = ?, ativo = ?, sigla = ?, id_pais = ? WHERE id = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, estado.getNome());
+            ps.setBoolean(2, estado.isAtivo());
+            ps.setString(3, estado.getSigla());
+            ps.setInt(4, estado.getPais().getId());
+            ps.setInt(5, estado.getId());
+            ps.executeUpdate();
+        }
+    }
+
+    public void excluir(int id) throws Exception {
+        String sql = "DELETE FROM estado WHERE id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new Exception("Possui cidades vinculadas! Não pode excluir!: " + e.getMessage());
+        }
+    }
+
+    public Estado encontrar(int id) throws Exception {
+        String sql = "SELECT e.id, e.nome, e.ativo, e.sigla, e.id_pais, p.nome AS pais " +
+                     "FROM estado e INNER JOIN pais p ON e.id_pais = p.id WHERE e.id = ?";
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    Estado e = new Estado();
+                    e.setId(rs.getInt("id"));
+                    e.setNome(rs.getString("nome"));
+                    e.setAtivo(rs.getBoolean("ativo"));
+                    e.setSigla(rs.getString("sigla"));
+                    e.setPais(new Pais(rs.getInt("id_pais"), rs.getString("pais")));
+                    return e;
+                }
+            }
+        }
+        return null;
+    }
+
+    public List<Estado> recuperarTodos(String filtro, int tipoFiltro, int ordenarPor) throws Exception {
+        List<Estado> lista = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(
+            "SELECT e.id, e.nome, e.ativo, e.sigla, e.id_pais, p.nome AS pais " +
+            "FROM estado e INNER JOIN pais p ON e.id_pais = p.id WHERE 1=1 "
+        );
+
+        boolean temFiltro = (filtro != null && !filtro.trim().isEmpty());
+        if (temFiltro) {
+            switch (tipoFiltro) {
+                case 0: sql.append(" AND e.nome ILIKE ?"); break;
+                case 1: sql.append(" AND e.id = ?"); break;
+                case 2: sql.append(" AND e.sigla = ?"); break;
+            }
+        }
+
+        if (ordenarPor == 0) {
+            sql.append(" ORDER BY e.id DESC");
+        } else {
+            sql.append(" ORDER BY e.nome");
+        }
+
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            if (temFiltro) {
+                if (tipoFiltro == 0) {
+                    ps.setString(1, filtro + "%");
+                } else if (tipoFiltro == 1) {
+                    ps.setInt(1, Integer.parseInt(filtro.trim()));
+                } else {
+                    ps.setString(1, filtro.trim());
+                }
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Estado e = new Estado();
+                    e.setId(rs.getInt("id"));
+                    e.setNome(rs.getString("nome"));
+                    e.setAtivo(rs.getBoolean("ativo"));
+                    e.setSigla(rs.getString("sigla"));
+                    e.setPais(new Pais(rs.getInt("id_pais"), rs.getString("pais")));
+                    lista.add(e);
+                }
+            }
+        }
+        return lista;
+    }
+
+    public List<Pais> recuperarPaises() {
+        List<Pais> paises = new ArrayList<>();
+        String sql = "SELECT id, nome FROM pais ORDER BY nome";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                paises.add(new Pais(rs.getInt("id"), rs.getString("nome")));
+            }
+        } catch (Exception ignored) {}
+        return paises;
+    }
+}
