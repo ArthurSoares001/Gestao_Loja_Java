@@ -2,6 +2,7 @@ package cidade.dao;
 
 import cidade.model.Cidade;
 import estado.model.Estado;
+import util.DatabaseConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -9,20 +10,11 @@ import java.util.List;
 
 public class CidadeDAO {
 
-    // Configuração de conexão do PostgreSQL
-    private static final String URL = "jdbc:postgresql://localhost:5432/seu_banco";
-    private static final String USER = "postgres";
-    private static final String PASSWORD = "sua_senha";
-
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
-    }
-
     public void incluir(Cidade cidade) throws Exception {
         cidade.validar();
         String sql = "INSERT INTO cidade (nome, cep, codigo_ibge, ativo, id_estado) VALUES (?, ?, ?, ?, ?)";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, cidade.getNome());
             ps.setObject(2, cidade.getCep(), Types.INTEGER);
@@ -43,7 +35,7 @@ public class CidadeDAO {
         cidade.validar();
         String sql = "UPDATE cidade SET nome = ?, cep = ?, codigo_ibge = ?, ativo = ?, id_estado = ? WHERE id = ?";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, cidade.getNome());
             ps.setObject(2, cidade.getCep(), Types.INTEGER);
@@ -57,7 +49,7 @@ public class CidadeDAO {
 
     public void excluir(int id) throws Exception {
         String sql = "DELETE FROM cidade WHERE id = ?";
-        try (Connection conn = getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
@@ -70,7 +62,7 @@ public class CidadeDAO {
         String sql = "SELECT c.id, c.nome, c.cep, c.codigo_ibge, c.ativo, c.id_estado, e.nome AS estado, e.sigla " +
                 "FROM cidade c INNER JOIN estado e ON c.id_estado = e.id WHERE c.id = ?";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -115,7 +107,7 @@ public class CidadeDAO {
             sql.append(" ORDER BY c.nome");
         }
 
-        try (Connection conn = getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             if (temFiltro) {
@@ -150,7 +142,7 @@ public class CidadeDAO {
         // Retorna a lista para o ComboBox
         List<Estado> estados = new ArrayList<>();
         String sql = "SELECT id, nome, sigla FROM estado ORDER BY nome";
-        try (Connection conn = getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {

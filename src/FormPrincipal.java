@@ -1,3 +1,8 @@
+import bandeiratef.view.FormBandeiraTefControle;
+import cidade.view.FormCidadeControle;
+import estado.view.FormEstadoControle;
+import pais.view.FormPaisControle;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -51,11 +56,11 @@ public class FormPrincipal extends JFrame {
 
         JMenu menuLocalizacao = new JMenu("Localização");
         JMenuItem itemPais = new JMenuItem("País...");
-        itemPais.addActionListener(e -> abrirModulo("Cadastro de Países"));
+        itemPais.addActionListener(e -> new FormPaisControle(this).setVisible(true));
         JMenuItem itemEstado = new JMenuItem("Estado...");
-        itemEstado.addActionListener(e -> abrirModulo("Cadastro de Estados"));
+        itemEstado.addActionListener(e -> new FormEstadoControle(this).setVisible(true));
         JMenuItem itemCidade = new JMenuItem("Cidade...");
-        itemCidade.addActionListener(e -> abrirModulo("Cadastro de Cidades"));
+        itemCidade.addActionListener(e -> new FormCidadeControle(this).setVisible(true));
         menuLocalizacao.add(itemPais);
         menuLocalizacao.addSeparator();
         menuLocalizacao.add(itemEstado);
@@ -66,7 +71,7 @@ public class FormPrincipal extends JFrame {
         menuCadastros.addSeparator();
 
         JMenuItem itemBandeiraTef = new JMenuItem("Bandeira TEF...");
-        itemBandeiraTef.addActionListener(e -> abrirModulo("Bandeira TEF"));
+        itemBandeiraTef.addActionListener(e -> new FormBandeiraTefControle(this).setVisible(true));
         JMenuItem itemCaracteristica = new JMenuItem("Característica...");
         itemCaracteristica.addActionListener(e -> abrirModulo("Características"));
         JMenuItem itemConta = new JMenuItem("Conta...");
@@ -251,7 +256,7 @@ public class FormPrincipal extends JFrame {
         sidebar.add(createSpeedButton("Compra", e -> abrirModulo("Compras")));
         sidebar.add(createSpeedButton("Financeiro", e -> abrirModulo("Financeiro / Caixa")));
         sidebar.add(createSpeedButton("Atendimento", e -> abrirModulo("Atendimento")));
-        sidebar.add(createSpeedButton("Ajuda", e -> JOptionPane.showMessageDialog(this, "Sistema ICommerce Java\nVersão 1.0.0")));
+        sidebar.add(createSpeedButton("Ajuda", e -> JOptionPane.showMessageDialog(this, "Sistema Gestão Loja versão 0.0.1")));
         sidebar.add(createSpeedButton("DashBoard", e -> abrirModulo("DashBoard")));
 
         sidebar.add(Box.createVerticalGlue()); // Espaçamento flexível empurrando o Sair para o rodapé da barra
@@ -281,7 +286,7 @@ public class FormPrincipal extends JFrame {
         JPanel center = new JPanel(new GridBagLayout());
         center.setBackground(Color.WHITE);
 
-        JLabel lblLogo = new JLabel("Intech Sistemas - ICommerce");
+        JLabel lblLogo = new JLabel("Gestão de lojas" );
         lblLogo.setFont(new Font("Tahoma", Font.BOLD, 28));
         lblLogo.setForeground(new Color(120, 120, 125));
         center.add(lblLogo);

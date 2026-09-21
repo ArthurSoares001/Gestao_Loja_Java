@@ -1,6 +1,7 @@
 package pais.dao;
 
 import pais.model.Pais;
+import util.DatabaseConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -8,19 +9,11 @@ import java.util.List;
 
 public class PaisDAO {
 
-    private static final String URL = "jdbc:postgresql://localhost:5432/seu_banco";
-    private static final String USER = "postgres";
-    private static final String PASSWORD = "sua_senha";
-
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(URL, USER, PASSWORD);
-    }
-
     public void incluir(Pais pais) throws Exception {
         pais.validar();
         String sql = "INSERT INTO pais (cpais, nome, ativo) VALUES (?, ?, ?)";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setObject(1, pais.getCPais(), Types.INTEGER);
             ps.setString(2, pais.getNome());
@@ -39,7 +32,7 @@ public class PaisDAO {
         pais.validar();
         String sql = "UPDATE pais SET cpais = ?, nome = ?, ativo = ? WHERE id = ?";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setObject(1, pais.getCPais(), Types.INTEGER);
             ps.setString(2, pais.getNome());
@@ -53,7 +46,7 @@ public class PaisDAO {
 
     public void excluir(int id) throws Exception {
         String sql = "DELETE FROM pais WHERE id = ?";
-        try (Connection conn = getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
@@ -65,7 +58,7 @@ public class PaisDAO {
     public Pais encontrar(int id) throws Exception {
         String sql = "SELECT id, cpais, nome, ativo FROM pais WHERE id = ?";
 
-        try (Connection conn = getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
@@ -101,7 +94,7 @@ public class PaisDAO {
             sql.append(" ORDER BY nome");
         }
 
-        try (Connection conn = getConnection();
+        try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             if (temFiltro) {
