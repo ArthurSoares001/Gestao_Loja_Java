@@ -1,4 +1,4 @@
-package bandeiratef.model;
+package Bandeiratef.model;
 
 import java.util.Locale;
 
@@ -153,9 +153,6 @@ public class BandeiraTefTaxa {
         }
         if (prazoRepasseDias == null || prazoRepasseDias < 0) {
             throw new Exception("Prazo de repasse nao pode ser negativo!");
-        }
-        if (adquirente == null || adquirente < 1) {
-            throw new Exception("Informe a adquirente!");
         }
     }
 

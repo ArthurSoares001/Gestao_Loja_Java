@@ -1,8 +1,8 @@
-package bandeiratef.dao;
+package Bandeiratef.dao;
 
-import bandeiratef.model.BandeiraTef;
-import bandeiratef.model.BandeiraTefTaxa;
-import util.DatabaseConnection;
+import Bandeiratef.model.BandeiraTef;
+import Bandeiratef.model.BandeiraTefTaxa;
+import Util.DatabaseConnection;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ public class BandeiraTefDAO {
                     ps.setString(1, bandeira.getNome());
                     ps.setString(2, bandeira.getCnpj());
                     ps.setBoolean(3, bandeira.isAtivo());
-                    ps.setString(4, bandeira.getEnumerar() != null ? bandeira.getEnumerar() : bandeira.getNome());
+                    ps.setString(4, bandeira.getEnumerar());
                     ps.executeUpdate();
 
                     try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -53,7 +53,7 @@ public class BandeiraTefDAO {
                     ps.setString(1, bandeira.getNome());
                     ps.setString(2, bandeira.getCnpj());
                     ps.setBoolean(3, bandeira.isAtivo());
-                    ps.setString(4, bandeira.getEnumerar() != null ? bandeira.getEnumerar() : bandeira.getNome());
+                    ps.setString(4, bandeira.getEnumerar());
                     ps.setInt(5, bandeira.getId());
                     ps.executeUpdate();
                 }
@@ -79,8 +79,8 @@ public class BandeiraTefDAO {
 
         if (bandeira.getLstTaxas() != null && !bandeira.getLstTaxas().isEmpty()) {
             String sqlInsert = "INSERT INTO bandeira_tef_taxa " +
-                    "(id_bandeira_tef, tp_integrado, parcela_min, parcela_max, taxa_percentual, prazo_repasse_dias, ativo, adquirente) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                    "(id_bandeira_tef, tp_integrado, parcela_min, parcela_max, taxa_percentual, prazo_repasse_dias, ativo) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
             try (PreparedStatement psIns = conn.prepareStatement(sqlInsert, Statement.RETURN_GENERATED_KEYS)) {
                 for (BandeiraTefTaxa taxa : bandeira.getLstTaxas()) {
@@ -92,7 +92,6 @@ public class BandeiraTefDAO {
                     psIns.setDouble(5, taxa.getTaxaPercentual());
                     psIns.setInt(6, taxa.getPrazoRepasseDias());
                     psIns.setBoolean(7, taxa.isAtivo());
-                    psIns.setInt(8, taxa.getAdquirente());
                     psIns.executeUpdate();
 
                     try (ResultSet rs = psIns.getGeneratedKeys()) {
@@ -135,7 +134,7 @@ public class BandeiraTefDAO {
         String sql = "SELECT b.id, b.nome, b.cnpj, b.ativo, b.enumerar, " +
                 "t.id AS t_id, t.tp_integrado AS t_tp_integrado, t.parcela_min AS t_parcela_min, " +
                 "t.parcela_max AS t_parcela_max, t.taxa_percentual AS t_taxa_percentual, " +
-                "t.prazo_repasse_dias AS t_prazo_repasse_dias, t.ativo AS t_ativo, t.adquirente " +
+                "t.prazo_repasse_dias AS t_prazo_repasse_dias, t.ativo AS t_ativo " +
                 "FROM bandeira_tef b " +
                 "LEFT JOIN bandeira_tef_taxa t ON t.id_bandeira_tef = b.id " +
                 "WHERE b.id = ? ORDER BY t.tp_integrado, t.parcela_min";
@@ -166,7 +165,6 @@ public class BandeiraTefDAO {
                         taxa.setTaxaPercentual(rs.getDouble("t_taxa_percentual"));
                         taxa.setPrazoRepasseDias(rs.getInt("t_prazo_repasse_dias"));
                         taxa.setAtivo(rs.getBoolean("t_ativo"));
-                        taxa.setAdquirente(rs.getInt("adquirente"));
                         bandeira.getLstTaxas().add(taxa);
                     }
                 }

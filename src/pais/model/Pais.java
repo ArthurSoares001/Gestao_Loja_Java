@@ -1,4 +1,4 @@
-package pais.model;
+package Pais.model;
 
 public class Pais {
     private Integer id;

@@ -1,11 +1,15 @@
-package estado.view;
+package Estado.view;
 
-import estado.dao.EstadoDAO;
-import estado.model.Estado;
+import Estado.dao.EstadoDAO;
+import Estado.model.Estado;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +33,7 @@ public class FormEstadoControle extends JDialog {
         setSize(720, 420);
         setLocationRelativeTo(getParent());
         setLayout(new BorderLayout());
+        configurarAtalhos();
 
         JPanel pnlFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT));
         pnlFiltros.add(new JLabel("Filtrar por:"));
@@ -55,6 +60,14 @@ public class FormEstadoControle extends JDialog {
 
         tabela = new JTable(tableModel);
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tabela.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    editar();
+                }
+            }
+        });
         add(new JScrollPane(tabela), BorderLayout.CENTER);
 
         JPanel pnlAcoes = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -71,6 +84,27 @@ public class FormEstadoControle extends JDialog {
         pnlAcoes.add(btnClonar);
 
         add(pnlAcoes, BorderLayout.SOUTH);
+    }
+
+    private void configurarAtalhos() {
+        JRootPane root = getRootPane();
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F2, 0), "novo");
+        root.getActionMap().put("novo", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) { novo(); }
+        });
+
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F3, 0), "procurar");
+        root.getActionMap().put("procurar", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) { atualizarGrid(); }
+        });
+
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "fechar");
+        root.getActionMap().put("fechar", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) { dispose(); }
+        });
     }
 
     private void atualizarGrid() {

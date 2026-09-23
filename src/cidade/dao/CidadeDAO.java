@@ -1,8 +1,8 @@
-package cidade.dao;
+package Cidade.dao;
 
-import cidade.model.Cidade;
-import estado.model.Estado;
-import util.DatabaseConnection;
+import Cidade.model.Cidade;
+import Estado.model.Estado;
+import Util.DatabaseConnection;
 
 import java.sql.*;
 import java.util.ArrayList;

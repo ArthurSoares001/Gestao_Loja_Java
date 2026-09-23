@@ -1,7 +1,7 @@
-package pais.dao;
+package Pais.dao;
 
-import pais.model.Pais;
-import util.DatabaseConnection;
+import Pais.model.Pais;
+import Util.DatabaseConnection;
 
 import java.sql.*;
 import java.util.ArrayList;

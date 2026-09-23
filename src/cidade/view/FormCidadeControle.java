@@ -1,11 +1,15 @@
-package cidade.view;
+package Cidade.view;
 
-import cidade.dao.CidadeDAO;
-import cidade.model.Cidade;
+import Cidade.dao.CidadeDAO;
+import Cidade.model.Cidade;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,6 +33,7 @@ public class FormCidadeControle extends JDialog {
         setSize(750, 420);
         setLocationRelativeTo(getParent());
         setLayout(new BorderLayout());
+        configurarAtalhos();
 
         // Cabeçalho de Filtros
         JPanel pnlFiltros = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -57,6 +62,14 @@ public class FormCidadeControle extends JDialog {
 
         tabela = new JTable(tableModel);
         tabela.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tabela.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    editar();
+                }
+            }
+        });
         add(new JScrollPane(tabela), BorderLayout.CENTER);
 
         // Rodapé de Ações
@@ -74,6 +87,27 @@ public class FormCidadeControle extends JDialog {
         pnlAcoes.add(btnClonar);
 
         add(pnlAcoes, BorderLayout.SOUTH);
+    }
+
+    private void configurarAtalhos() {
+        JRootPane root = getRootPane();
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F2, 0), "novo");
+        root.getActionMap().put("novo", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) { novo(); }
+        });
+
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F3, 0), "procurar");
+        root.getActionMap().put("procurar", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) { atualizarGrid(); }
+        });
+
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "fechar");
+        root.getActionMap().put("fechar", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) { dispose(); }
+        });
     }
 
     private void atualizarGrid() {

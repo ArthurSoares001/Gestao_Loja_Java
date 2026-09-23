@@ -1,8 +1,8 @@
-package estado.dao;
+package Estado.dao;
 
-import estado.model.Estado;
-import pais.model.Pais;
-import util.DatabaseConnection;
+import Estado.model.Estado;
+import Pais.model.Pais;
+import Util.DatabaseConnection;
 
 import java.sql.*;
 import java.util.ArrayList;

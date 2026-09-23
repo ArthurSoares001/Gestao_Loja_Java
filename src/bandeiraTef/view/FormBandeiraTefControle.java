@@ -1,7 +1,7 @@
-package bandeiratef.view;
+package Bandeiratef.view;
 
-import bandeiratef.dao.BandeiraTefDAO;
-import bandeiratef.model.BandeiraTef;
+import Bandeiratef.dao.BandeiraTefDAO;
+import Bandeiratef.model.BandeiraTef;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;

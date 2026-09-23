@@ -1,7 +1,10 @@
-import bandeiratef.view.FormBandeiraTefControle;
-import cidade.view.FormCidadeControle;
-import estado.view.FormEstadoControle;
-import pais.view.FormPaisControle;
+import Bandeiratef.view.FormBandeiraTefControle;
+import Cidade.view.FormCidadeControle;
+import Compra.view.FormCompraControle;
+import Estado.view.FormEstadoControle;
+import Mercadoria.view.FormMercadoriaControle;
+import Pais.view.FormPaisControle;
+import Participante.view.FormParticipanteControle;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -250,10 +253,10 @@ public class FormPrincipal extends JFrame {
         sidebar.setBorder(BorderFactory.createMatteBorder(0, 0, 0, 1, Color.LIGHT_GRAY));
 
         // SpeedButtons do Delphi
-        sidebar.add(createSpeedButton("Participante", e -> abrirModulo("Participantes")));
-        sidebar.add(createSpeedButton("Mercadoria", e -> abrirModulo("Mercadorias")));
+        sidebar.add(createSpeedButton("Participante", e -> new FormParticipanteControle(this).setVisible(true)));
+        sidebar.add(createSpeedButton("Mercadoria", e -> new FormMercadoriaControle(this).setVisible(true)));
         sidebar.add(createSpeedButton("Venda", e -> abrirModulo("Vendas / Pedidos")));
-        sidebar.add(createSpeedButton("Compra", e -> abrirModulo("Compras")));
+        sidebar.add(createSpeedButton("Compra", e -> new FormCompraControle(this).setVisible(true)));
         sidebar.add(createSpeedButton("Financeiro", e -> abrirModulo("Financeiro / Caixa")));
         sidebar.add(createSpeedButton("Atendimento", e -> abrirModulo("Atendimento")));
         sidebar.add(createSpeedButton("Ajuda", e -> JOptionPane.showMessageDialog(this, "Sistema Gestão Loja versão 0.0.1")));

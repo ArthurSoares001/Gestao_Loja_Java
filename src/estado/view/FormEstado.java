@@ -1,11 +1,13 @@
-package estado.view;
+package Estado.view;
 
-import estado.dao.EstadoDAO;
-import estado.model.Estado;
-import pais.model.Pais;
+import Estado.dao.EstadoDAO;
+import Estado.model.Estado;
+import Pais.model.Pais;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 public class FormEstado extends JDialog {
 
@@ -22,6 +24,7 @@ public class FormEstado extends JDialog {
         super(parent, "Estado - Cadastro", true);
         this.estado = (estado != null) ? estado : new Estado();
         initComponents();
+        configurarAtalhos();
         carregarPaises();
         preencherCampos();
     }
@@ -53,11 +56,26 @@ public class FormEstado extends JDialog {
         JButton btnCancelar = new JButton("Cancelar (ESC)");
 
         btnSalvar.addActionListener(e -> salvar());
-        btnCancelar.addActionListener(e -> dispose());
+        btnCancelar.addActionListener(e -> fecharComConfirmacao());
 
         pnlBotoes.add(btnSalvar);
         pnlBotoes.add(btnCancelar);
         add(pnlBotoes, BorderLayout.SOUTH);
+    }
+
+    private void configurarAtalhos() {
+        JRootPane root = getRootPane();
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0), "salvar");
+        root.getActionMap().put("salvar", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) { salvar(); }
+        });
+
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "cancelar");
+        root.getActionMap().put("cancelar", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) { fecharComConfirmacao(); }
+        });
     }
 
     private void carregarPaises() {
@@ -107,5 +125,11 @@ public class FormEstado extends JDialog {
 
     public Estado getEstado() {
         return estado;
+    }
+
+    private void fecharComConfirmacao() {
+        if (JOptionPane.showConfirmDialog(this, "Deseja realmente sair?", "Confirmação", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+            dispose();
+        }
     }
 }

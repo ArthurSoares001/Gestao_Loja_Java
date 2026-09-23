@@ -1,6 +1,6 @@
-package estado.model;
+package Estado.model;
 
-import pais.model.Pais;
+import Pais.model.Pais;
 
 public class Estado {
     private Integer id;
