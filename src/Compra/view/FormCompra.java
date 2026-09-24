@@ -2,8 +2,10 @@ package Compra.view;
 
 import Compra.dao.CompraDAO;
 import Compra.model.Compra;
+import CompraAcerto.model.CompraAcerto;
 import CompraItem.model.CompraItem;
 import CompraParcela.model.CompraParcela;
+import Mercadoria.dao.MercadoriaDAO;
 import Mercadoria.model.Mercadoria;
 import Participante.model.Participante;
 
@@ -16,6 +18,7 @@ import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.List;
 
 public class FormCompra extends JDialog {
 
@@ -67,12 +70,14 @@ public class FormCompra extends JDialog {
     private JLabel lblTotalRegistrosParcelas = new JLabel("Registros: 0");
 
     // Botões Rodapé
+    private JButton btnAcerto = new JButton("F8 - Acerto/Devolução");
     private JButton btnGravar = new JButton("F12 Gravar");
     private JButton btnCancelar = new JButton("ESC Sair");
 
     private boolean confirmado = false;
     private Compra compra;
     private CompraDAO dao = new CompraDAO();
+    private MercadoriaDAO mercadoriaDAO = new MercadoriaDAO();
 
     public FormCompra(Frame parent, Compra compra) {
         super(parent, "Entrada de Mercadoria", true);
@@ -185,13 +190,20 @@ public class FormCompra extends JDialog {
         // PAINEL INFERIOR: BOTÕES DE GRAVAR E FECHAR
         // ─────────────────────────────────────────────────────────────────
         JPanel pnlSul = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 6));
+        
+        btnAcerto.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        btnAcerto.setBackground(new Color(255, 140, 0));
+        btnAcerto.setForeground(Color.BLACK);
+        btnAcerto.addActionListener(e -> acertoDevolucao());
+        
         btnGravar.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnGravar.setBackground(new Color(40, 140, 60));
-        btnGravar.setForeground(Color.WHITE);
+        btnGravar.setForeground(Color.BLACK);
         btnGravar.addActionListener(e -> gravar());
 
         btnCancelar.addActionListener(e -> fecharComConfirmacao());
 
+        pnlSul.add(btnAcerto);
         pnlSul.add(btnGravar);
         pnlSul.add(btnCancelar);
         add(pnlSul, BorderLayout.SOUTH);
@@ -216,8 +228,9 @@ public class FormCompra extends JDialog {
 
         // Tabela de itens
         String[] colunas = {
-                "Item", "Cód. Barra", "Descrição", "UN", "Vl. Compra",
-                "Desc %", "Vl. Custo", "Vl. Venda", "Qtd", "Total", "Status Custo"
+                "Item", "Cód. Barra", "Descrição", "UN", "Config. Fiscal",
+                "Vl. Compra", "Desc %", "Vl. Custo", "Vl. Venda", "Qtd", "Total",
+                "Vl. Mínimo %", "Marg. Custo %", "Marg. Mínima %", "Marg. Lucro %", "Status Custo"
         };
 
         modelItens = new DefaultTableModel(colunas, 0) {
@@ -235,7 +248,7 @@ public class FormCompra extends JDialog {
         });
 
         // Colorir o status de custo ('>' subiu, '<' baixou)[cite: 4, 11]
-        tblItens.getColumnModel().getColumn(10).setCellRenderer(new DefaultTableCellRenderer() {
+        tblItens.getColumnModel().getColumn(15).setCellRenderer(new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
@@ -348,6 +361,12 @@ public class FormCompra extends JDialog {
             public void actionPerformed(ActionEvent e) { alterarItem(); }
         });
 
+        root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0), "f8");
+        root.getActionMap().put("f8", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) { acertoDevolucao(); }
+        });
+
         root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_F12, 0), "f12");
         root.getActionMap().put("f12", new AbstractAction() {
             @Override
@@ -418,18 +437,29 @@ public class FormCompra extends JDialog {
                 String desc = (item.getMercadoria() != null) ? item.getMercadoria().getNome() : "";
                 String codBarra = (item.getMercadoria() != null && item.getMercadoria().getCodBarra() != null) ? item.getMercadoria().getCodBarra() : "";
                 String un = (item.getMercadoria() != null && item.getMercadoria().getUnidade() != null) ? item.getMercadoria().getUnidade().getSigla() : "";
+                String configFiscal = (item.getMercadoria() != null && item.getMercadoria().getConfigFiscal() != null) ? item.getMercadoria().getConfigFiscal().getNome() : "";
+                
+                double valMinimo = (item.getMercadoria() != null && item.getMercadoria().getValMinimo() != null) ? item.getMercadoria().getValMinimo().doubleValue() : 0.0;
+                double margCusto = (item.getMercadoria() != null && item.getMercadoria().getMargemCusto() != null) ? item.getMercadoria().getMargemCusto().doubleValue() : 0.0;
+                double margMinima = (item.getMercadoria() != null && item.getMercadoria().getMargemMinimo() != null) ? item.getMercadoria().getMargemMinimo().doubleValue() : 0.0;
+                double margLucro = (item.getMercadoria() != null && item.getMercadoria().getMargemLucro() != null) ? item.getMercadoria().getMargemLucro().doubleValue() : 0.0;
 
                 modelItens.addRow(new Object[]{
                         seq++,
                         codBarra,
                         desc,
                         un,
+                        configFiscal,
                         String.format("%.2f", item.getValorCompra()),
                         String.format("%.2f", item.getDesconto()),
                         String.format("%.2f", item.getValorCusto()),
                         String.format("%.2f", item.getValorVenda()),
                         String.format("%.2f", item.getQuantidade()),
                         String.format("%.2f", item.getValorTotal()),
+                        String.format("%.2f", valMinimo),
+                        String.format("%.2f", margCusto),
+                        String.format("%.2f", margMinima),
+                        String.format("%.2f", margLucro),
                         item.statusValor()
                 });
             }
@@ -456,25 +486,112 @@ public class FormCompra extends JDialog {
 
     private void procurarProduto() {
         String termo = edtDescricaoProd.getText().trim();
-        if (termo.isEmpty()) return;
 
-        // Demonstração da busca e inserção rápida de item
+        try {
+            List<Mercadoria> resultados;
+            if (termo.isEmpty()) {
+                // Campo vazio: buscar os 100 primeiros itens
+                resultados = mercadoriaDAO.recuperarTodos("", 0, 1);
+                // Limitar a 100 resultados
+                if (resultados.size() > 100) {
+                    resultados = resultados.subList(0, 100);
+                }
+            } else {
+                // Campo preenchido: buscar com filtro
+                resultados = mercadoriaDAO.recuperarTodos(termo, cmbTipoFiltro.getSelectedIndex(), 1);
+            }
+            
+            lblRegEncontrados.setText("Registros encontrados: " + resultados.size());
+
+            if (resultados.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Nenhuma mercadoria encontrada.");
+                return;
+            }
+
+            if (resultados.size() > 1) {
+                // Mais de um resultado: abrir FormCompraEscolherMaisItens
+                FormCompraEscolherMaisItens formEscolher = new FormCompraEscolherMaisItens(this, resultados);
+                formEscolher.setVisible(true);
+                
+                if (formEscolher.getMercadoriaSelecionada() != null) {
+                    Mercadoria mercadoria = formEscolher.getMercadoriaSelecionada();
+                    adicionarItemCompra(mercadoria);
+                }
+            } else {
+                // Apenas um resultado: abrir FormCompraEscolherItem diretamente
+                Mercadoria mercadoria = resultados.get(0);
+                if (itemJaExiste(mercadoria.getId())) {
+                    if (JOptionPane.showConfirmDialog(this, 
+                            "Item já está na lista. Deseja alterar?", 
+                            "Confirmação", 
+                            JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                        alterarItemExistente(mercadoria.getId());
+                    }
+                } else {
+                    CompraItem item = new CompraItem();
+                    item.setMercadoria(mercadoria);
+                    
+                    FormCompraEscolherItem formItem = new FormCompraEscolherItem(this, item, mercadoria);
+                    formItem.setVisible(true);
+                    
+                    if (formItem.isConfirmado()) {
+                        compra.getLstCompraItem().add(formItem.getCompraItem());
+                        edtDescricaoProd.setText("");
+                        atualizarDadosCalculados();
+                        atualizarGridItens();
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this, "Erro na busca: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
+    private boolean itemJaExiste(Integer idMercadoria) {
+        if (compra.getLstCompraItem() == null) return false;
+        for (CompraItem item : compra.getLstCompraItem()) {
+            if (item.getMercadoria() != null && item.getMercadoria().getId().equals(idMercadoria)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void alterarItemExistente(Integer idMercadoria) {
+        for (int i = 0; i < compra.getLstCompraItem().size(); i++) {
+            CompraItem item = compra.getLstCompraItem().get(i);
+            if (item.getMercadoria() != null && item.getMercadoria().getId().equals(idMercadoria)) {
+                tblItens.setRowSelectionInterval(i, i);
+                alterarItem();
+                return;
+            }
+        }
+    }
+
+    private void adicionarItemCompra(Mercadoria mercadoria) {
+        if (itemJaExiste(mercadoria.getId())) {
+            if (JOptionPane.showConfirmDialog(this, 
+                    "Item já está na lista. Deseja alterar?", 
+                    "Confirmação", 
+                    JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+                alterarItemExistente(mercadoria.getId());
+            }
+            return;
+        }
+
         CompraItem item = new CompraItem();
-        Mercadoria m = new Mercadoria();
-        m.setNome(termo);
-        m.setCodBarra("789" + (int)(Math.random() * 100000));
-        m.setValCompra(new java.math.BigDecimal("10.00"));
-        item.setMercadoria(m);
-        item.setValorCompra(10.00);
-        item.setQuantidade(1.0);
-        item.setValorTotal(10.00);
-        item.setValorCusto(10.00);
-        item.setValorVenda(15.00);
-
-        compra.getLstCompraItem().add(item);
-        edtDescricaoProd.setText("");
-        atualizarDadosCalculados();
-        atualizarGridItens();
+        item.setMercadoria(mercadoria);
+        
+        FormCompraEscolherItem formItem = new FormCompraEscolherItem(this, item, mercadoria);
+        formItem.setVisible(true);
+        
+        if (formItem.isConfirmado()) {
+            compra.getLstCompraItem().add(formItem.getCompraItem());
+            edtDescricaoProd.setText("");
+            atualizarDadosCalculados();
+            atualizarGridItens();
+        }
     }
 
     private void alterarItem() {
@@ -598,6 +715,26 @@ public class FormCompra extends JDialog {
             File f = chooser.getSelectedFile();
             edtImportarXml.setText(f.getAbsolutePath());
             JOptionPane.showMessageDialog(this, "XML carregado com sucesso!\n" + f.getName());
+        }
+    }
+
+    private void acertoDevolucao() {
+        if (compra.getId() == null || compra.getId() <= 0) {
+            JOptionPane.showMessageDialog(this, "A compra precisa ser salva antes de realizar acerto/devolução.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        if (!compra.temItens()) {
+            JOptionPane.showMessageDialog(this, "A compra não possui itens para acerto/devolução.", "Aviso", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        FormAcertoCompra formAcerto = new FormAcertoCompra(this, compra);
+        formAcerto.setVisible(true);
+        
+        if (formAcerto.isConfirmado()) {
+            CompraAcerto acerto = formAcerto.getCompraAcerto();
+            // Aqui você pode salvar o acerto no banco de dados
+            JOptionPane.showMessageDialog(this, "Acerto/Devolução realizado com sucesso!");
         }
     }
 

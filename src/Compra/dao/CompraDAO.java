@@ -97,7 +97,7 @@ public class CompraDAO {
         ps.setString(31, c.getDfeChave());
         ps.setString(32, c.getDfeStatus());
         ps.setString(33, c.getDfeVersao());
-       // ps.setString(34, c.getDfeProtocolo());
+        ps.setString(34, c.getDfeProtoco());
         ps.setString(35, c.getDfeAutorizacao());
         ps.setTimestamp(36, c.getDfeDhAutorizacao() != null ? Timestamp.valueOf(c.getDfeDhAutorizacao()) : null);
 
